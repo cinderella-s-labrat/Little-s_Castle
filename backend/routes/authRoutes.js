@@ -1,42 +1,89 @@
-
+const express = require("express");
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
+const activationTemplate = require("../templets/activationTemplet");
+const upload = require("../middleware/uploadMiddleware");
+  
 
 // REGISTER
-router.post("/register", async (req, res) => {
-  const { name, email, address, gender, age, DOB, password } = req.body;
+router.post("/register", upload.single("profilePic"), async (req, res) => {
 
-  const exist = await User.findOne({ email });
-  if (exist) return res.status(400).json({ msg: "Email exists" });
+  try {
 
-  const hashed = await bcrypt.hash(password, 10);
+    const {
+      Fname,
+      midName,
+      Lname,
+      email,
+      address,
+      gender,
+      age,
+      DOB,
+      phone,
+      password
+    } = req.body;
 
-  const user = await User.create({
-    name,
-    email,
-    address,
-    gender,
-    age,
-    DOB,
-    password: hashed
-  });
+    const exist = await User.findOne({ email });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d"
-  });
+    if (exist) {
+      return res.status(400).json({ msg: "Email exists" });
+      alert("Email already exists");
+    }
 
-  const link = `${process.env.CLIENT_URL}/activate/${token}`;
+    const salt = await bcrypt.genSalt(10);
 
-  await sendEmail(email, "REGISTRATION SUCCESS & ACTIVATION",
-     `Welcome ${name},<br><br> Thank you for registering. 
-      Please click the link below to activate your account.<br><br>
-      <a href="${link}">Activate Account</a>`
-  );
+    const hashed = await bcrypt.hash(password, salt);
 
-  res.json({ msg: "Check email to activate" });
+    const user = await User.create({
+      Fname,
+      midName,
+      Lname,
+      email,
+      address,
+      gender,
+      age,
+      phone,
+      DOB,
+      password: hashed,
+      profilePic: req.file ? req.file.path : ""
+    });
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d"
+      }
+    );
+
+    const link = `${process.env.CLIENT_URL}/activate/${token}`;
+
+    const fullName = `${Fname} ${midName || ""} ${Lname}`.replace(/\s+/g, " ").trim();
+
+      await sendEmail(
+      email,
+      "Activate Your Account",
+      activationTemplate(fullName, link),
+    );
+
+    
+    res.json({
+      msg: "Registration successful. Check your email."
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      msg: err.message
+    });
+
+  }
 });
 
 // ACTIVATE
@@ -56,20 +103,27 @@ router.get("/activate/:token", async (req, res) => {
 
 // LOGIN
 router.post("/login", async (req, res) => {
+try {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
   if (!user) return res.status(400).json({ msg: "Invalid" });
 
   if (!user.isVerified)
-    return res.status(400).json({ msg: "Verify email first" });
+    return res.status(400).json({ msg: "Email is not verified" });
 
   const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(400).json({ msg: "Invalid" });
+  if (!match) return res.status(400).json({ msg: "Invalid email or password" });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-  res.json({ token, user });
+  res.json({ token, user: {
+    id: user._id,
+    email: user.email,
+  } });
+} catch (err) {
+  res.status(500).json({ msg: err.message });
+}
 });
 
 module.exports = router;

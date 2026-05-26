@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  name: String,
+  Fname: String,
+  midName: {type: String, required: false},
+  Lname: String,
   email: { type: String, unique: true },
   password:{ type: String, required: true },
   address: String,
   gender: String,
+  phone: String,
   age: Number,
   DOB: String,
-  // photo: String,
+  profilePic: String,
   isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
 

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const path = require("path");
 
 module.exports = async (to, subject, html) => {
   const transporter = nodemailer.createTransport({
@@ -14,6 +15,14 @@ module.exports = async (to, subject, html) => {
     to,
     subject,
     html,
+
+    attachments: [
+      {
+        filename: "logo.png",
+        path:path.join(__dirname, "../assets/logo.png"),
+        cid: "logo"
+      }
+    ]
   });
 };
 
