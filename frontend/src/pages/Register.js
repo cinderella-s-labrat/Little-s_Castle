@@ -67,7 +67,7 @@ export default function Register() {
 
     } catch (err) {
       console.log(err);
-      alert(err.response?.data?.msg || "Registration failed");
+      alert(err.response.data.msg || "Registration failed");
     }
   };
 

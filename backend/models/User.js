@@ -12,6 +12,19 @@ const userSchema = new mongoose.Schema({
   age: Number,
   DOB: String,
   profilePic: String,
+  role: {
+  type: String,
+  
+  enum: [
+    "user",
+    "admin"
+  ],
+
+  default: "user"
+},
+resetToken: String,
+resetTokenExpire: Date,
+
   isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
 

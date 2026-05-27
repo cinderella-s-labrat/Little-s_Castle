@@ -5,10 +5,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios"; 
 // For making API requests
 
+import {useNavigate} from "react-router-dom";
+
 
 // Dashboard component
 export default function Dashboard() {
 
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null); 
   // State to store user profile (initially null)
 
@@ -91,7 +94,9 @@ export default function Dashboard() {
           <p>DOB : {profile.DOB} &nbsp;| &nbsp;Age : {profile.age}</p>
           <p>Address : {profile.address}</p>
           <div className="d-flex gap-3 justify-content-center">
-            <button className="btn btn-info">Edit Profile</button>
+            <button className="btn btn-info" onClick={() => navigate("/edit-profile")}>
+              Edit Profile
+            </button>
             <button className="btn btn-danger" onClick={() => {
               localStorage.removeItem("token");
               window.location.href = "/login";

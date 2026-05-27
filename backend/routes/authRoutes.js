@@ -30,7 +30,6 @@ router.post("/register", upload.single("profilePic"), async (req, res) => {
 
     if (exist) {
       return res.status(400).json({ msg: "Email exists" });
-      alert("Email already exists");
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -115,6 +114,10 @@ try {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(400).json({ msg: "Invalid email or password" });
 
+  if (user.role === "admin") {
+    return res.status(400).json({ msg: "Admins cannot log in here" });
+  }
+
   const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
   res.json({ token, user: {
@@ -124,6 +127,75 @@ try {
 } catch (err) {
   res.status(500).json({ msg: err.message });
 }
+});
+
+// FORGOT PASSWORD
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user)
+    return res.status(400).json({ msg: "User not found" });
+
+  const resetToken = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  user.resetToken = resetToken;
+  user.resetTokenExpire = Date.now() + 15 * 60 * 1000;
+
+  await user.save();
+
+  const link = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+  await sendEmail(
+    email,
+    "Reset Password",
+    `
+      <h2>Reset Password</h2>
+      <a href="${link}">${link}</a>
+    `
+  );
+
+  res.json({ msg: "Password reset email sent" });
+});
+
+// RESET PASSWORD
+router.post("/reset-password/:token", async (req, res) => {
+  try {
+
+    const decoded = jwt.verify(
+      req.params.token,
+      process.env.JWT_SECRET
+    );
+
+    const user = await User.findById(decoded.id);
+
+    if (
+      !user ||
+      user.resetToken !== req.params.token ||
+      user.resetTokenExpire < Date.now()
+    ) {
+      return res.status(400).json({ msg: "Invalid or expired token" });
+    }
+
+    const hashed = await bcrypt.hash(req.body.password, 10);
+
+    user.password = hashed;
+
+    user.resetToken = null;
+    user.resetTokenExpire = null;
+
+    await user.save();
+
+    res.json({ msg: "Password reset successful" });
+
+  } catch {
+    res.status(400).json({ msg: "Invalid token" });
+  }
 });
 
 module.exports = router;

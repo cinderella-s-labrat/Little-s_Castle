@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 export default function Navbar() {
   const nav = useNavigate();
   const token = localStorage.getItem("token");
+  
 
   const logout = () => {
     localStorage.clear();
@@ -29,17 +30,7 @@ export default function Navbar() {
                     <Link to="/classes" className="nav-item nav-link">
                         Classes
                     </Link>
-                    {/* <div className="nav-item dropdown">
-                        <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                        <div className="dropdown-menu rounded-0 rounded-bottom border-0 shadow-sm m-0">
-                            <a href="facility.html" className="dropdown-item">School Facilities</a>
-                            <a href="team.html" className="dropdown-item">Popular Teachers</a>
-                            <a href="call-to-action.html" className="dropdown-item">Become A Teachers</a>
-                            <a href="appointment.html" className="dropdown-item">Make Appointment</a>
-                            <a href="testimonial.html" className="dropdown-item">Testimonial</a>
-                            <a href="404.html" className="dropdown-item">404 Error</a>
-                        </div>
-                    </div> */}
+
                     <Link to="/contact" className="nav-item nav-link">
                         Contact Us
                     </Link>
@@ -49,9 +40,14 @@ export default function Navbar() {
                   <Link to="/login">
                     <button className="btn btn-primary round-pill px-3 d-none d-lg-block">Login</button >
                   </Link> 
+                  {/* <Link to="/forgot-password">
+                    Forgot Password
+                  </Link> */}
                   <Link to="/register">
                     <button className="btn btn-primary round-pill px-3 d-none d-lg-block">Register</button>
                   </Link>
+                  {/* <Link to="/edit-profile">Edit Profile</Link>
+                  <Link to="/change-password">Change Password</Link> */}
                 </div>
               )}
 

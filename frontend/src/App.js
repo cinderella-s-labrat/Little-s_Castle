@@ -4,7 +4,14 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Activate from "./pages/Activate";
 import About from "./pages/about";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import EditProfile from "./pages/EditProfile";
+import ChangePassword from "./pages/ChangePassword";
 import Class from "./pages/class";
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminRoute from "./components/AdminRoute";
 import Contact from "./pages/contact";
 import Navbar from "./components/Navbar";
 import Home from "./pages/home";
@@ -19,7 +26,22 @@ function App() {
     <BrowserRouter>
       <Navbar />
 
-      <Routes>
+            <Routes>
+              <Route
+        path="/admin/login"
+        element={<AdminLogin />}
+      />
+
+      <Route
+        path="/admin/dashboard"
+
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
+
         <Route path="/" element={<Home />} />
         
         <Route path="/about" element={<About />} />
@@ -30,6 +52,22 @@ function App() {
 
         <Route path="/login" element={
           <AuthRedirect><Login /></AuthRedirect>
+        } />
+
+        <Route path="/forgot-password" element={
+          <AuthRedirect><ForgotPassword /></AuthRedirect>
+        } />
+
+        <Route path="/reset-password/:token" element={
+          <AuthRedirect><ResetPassword /></AuthRedirect>
+        } />
+
+        <Route path="/edit-profile" element={
+          <ProtectedRoute><EditProfile /></ProtectedRoute>
+        } />
+
+        <Route path="/change-password" element={
+          <ProtectedRoute><ChangePassword /></ProtectedRoute>
         } />
 
         <Route path="/register" element={
